@@ -62,22 +62,25 @@
   (let ((leftChildIndex (lambda (x) (+ (* 2 x) 1))) (rightChildIndex (lambda (x) (+ (* 2 x) 2))))
     (letrec ((while (lambda (rootIndex arr)
       (let ((childIndex (leftChildIndex rootIndex)) (swapIndex rootIndex))
-        (begin
-          (if (< (list-elem arr swapIndex) (list-elem arr childIndex))
-            (set! swapIndex childIndex)
-            #f
+        (if (<= childIndex endIndex)
+          (begin
+            (if (< (list-elem arr swapIndex) (list-elem arr childIndex))
+              (set! swapIndex childIndex)
+              #f
+            )
+            (if (and (<= (+ childIndex 1) endIndex) (< (list-elem arr swapIndex) (list-elem arr (+ childIndex 1))))
+              (set! swapIndex (+ childIndex 1))
+              #f
+            )
+            (if (not (eq? swapIndex rootIndex))
+              (while swapIndex (swap arr rootIndex swapIndex))
+              arr
+            )
           )
-          (if (and (<= (+ childIndex 1) endIndex) (< (list-elem arr swapIndex) (list-elem arr (+ childIndex 1))))
-            (set! swapIndex (+ childIndex 1))
-            #f
-          )
-          (if (not (eq? swapIndex rootIndex))
-            (while swapIndex (swap arr rootIndex swapIndex))
-            arr
-          )
+          arr
         )
       ))))
-      (while (leftChildIndex startIndex) l)
+      (while startIndex l)
     )
   )
 )
