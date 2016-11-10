@@ -7,7 +7,7 @@
 sub trim {
   my $inputString = $_[0];
 
-  my $trimmedString = $inputString =~ s/^(\s*)(\w|\w.*\w)(\s*)$/\2/r;
+  my $trimmedString = $inputString =~ s/^(\s*)(\S|\S.*\S)(\s*)$/\2/r;
   return $trimmedString;
 }
 
@@ -64,6 +64,26 @@ while (my $line = <$grammarFile>) {
   @rightHand = split(/\|/, $1);
 
   # loop through righthand, check and parse every term
+  for my $i (0 .. $#rightHand) {
+    $term = $rightHand[$i];
+
+    # right-hand wrongly formatted or not
+    if ($i == $#rightHand) {
+      if ($term !~ /^(?:\s+(?:[A-Z][a-z]*|[a-z]+|[\[\]\(\)\+\*-]))+\s*$/) {
+        findError($term, 1);
+      }
+    } else {
+      if ($term !~ /^(?:\s+(?:[A-Z][a-z]*|[a-z]+|[\[\]\(\)\+\*-]))+\s+$/) {
+        findError($term, 0);
+      }
+    }
+
+    @subTerms = split(/\s+/, trim($term));
+    push(@{$grammar{$leftTerm}}, \@subTerms);
+  }
+
+  @kek = @{$grammar{$leftTerm}};
+  print $kek[0][0] . "\t";
 }
 
 
