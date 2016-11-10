@@ -11,14 +11,22 @@ sub trim {
   return $trimmedString;
 }
 
+sub showErrorMsg {
+  my ($errorMsg, $line) = @_;
+
+  print "Wrong format for input grammar:\n";
+  print "--> " . $errorMsg . " on line " . $line . "\n\n";
+  die;
+}
+
 # Get command-line arguments
 if (!($grammarPath = $ARGV[0])) {
-  die "\t!!! Original grammar needed as 1st command-line argument\n";
+  die "--> Original grammar needed as 1st command-line argument\n";
 }
 print "Grabbing original grammar found at $grammarPath\n";
 
 if (!open($grammarFile, '<:encoding(UTF-8)', $grammarPath)) {
-  die "\t!!! Could not find grammar file ($grammarPath)";
+  die "--> Could not find grammar file ($grammarPath)";
 }
 print "Grabbed grammar\n\n";
 
@@ -29,39 +37,37 @@ if (!$outputPath) {
 
 
 # Parse grammar
-%errors;
 %grammar;
-while (my $line = <$grammar>) {
+while (my $line = <$grammarFile>) {
   $lineNumber++;
+  my $leftTerm;
   chomp $line;
 
-  if ($line !~ m/^\s*([A-Z][a-zA-Z]*)(\s+)(-+>).*/) { # error in left-hand side
-    if ($line !~ m/^\s*([A-Z][a-zA-Z]*)(.*)/) {
-      push (@{$errors{'Left factor is wrongly formatted'}}, $lineNumber);
-    }
-    if ($2 !~ m/^\s+(.*)/) {
-      push (@{$errors{'Missing space between terms'}}, $lineNumber);
-    }
-    $arrow = $2 ? $2 : $1;
-    if ($arrow !~ m/^-+>(.*)/) {
-      push (@{$errors{'Arrow is wrongly formatted'}}, $lineNumber);
-    }
-    print "lol" . $2 . "lol";
+  if ($line !~ m/^\s*([A-Z][a-zA-Z]*)(.*)/) {
+    showErrorMsg("Left factor is wrongly formatted", $lineNumber);
   }
-}
+  $leftTerm = $1;
 
-if (%errors) {
-  print "Wrong format for input grammar:\n";
-
-  foreach $key (sort keys %errors) {
-    $lineNumbers = join(", ", @{$errors{$key}});
-    print "\t$key on line(s) $lineNumbers\n";
+  if (exists $grammar{$leftTerm}) {
+    showErrorMsg("Non-terminal production can be present only once", $lineNumber);
   }
+  $grammar{$leftTerm} = ();
 
-  print "\n";
+  if ($2 !~ m/^\s+(.*)/) {
+    showErrorMsg("Missing space between terms", $lineNumber);
+  }
+  $arrowAndRightHand = $1;
+
+  if ($arrowAndRightHand !~ m/^-+>(.*)/) {
+    showErrorMsg("Arrow is wrongly formatted", $lineNumber);
+  }
+  @rightHand = split('|', $1);
+
+  # loop through righthand, check and parse every term
 }
 
 
 
 # if errors in grammar, correct it
+
 # output corrected grammar to $outputfile
