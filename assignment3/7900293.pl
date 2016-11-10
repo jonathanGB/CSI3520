@@ -61,7 +61,7 @@ while (my $line = <$grammarFile>) {
   if ($arrowAndRightHand !~ m/^-+>(.*)/) {
     showErrorMsg("Arrow is wrongly formatted", $lineNumber);
   }
-  @rightHand = split('|', $1);
+  @rightHand = split(/\|/, $1);
 
   # loop through righthand, check and parse every term
 }
