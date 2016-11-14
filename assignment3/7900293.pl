@@ -3,6 +3,8 @@
 # Nombre d'étudiants : 7900293
 # Courriel d’étudiant: jguil098@uottawa.ca
 
+use Data::Dumper qw(Dumper);
+
 # helper functions
 sub trim {
   my $inputString = $_[0];
@@ -15,7 +17,13 @@ sub showErrorMsg {
   my ($errorMsg, $line) = @_;
 
   print "Wrong format for input grammar:\n";
-  print "--> " . $errorMsg . " on line " . $line . "\n\n";
+  print "--> " . $errorMsg;
+
+  if ($line) {
+     print " on line " . $line;
+  }
+  print "\n\n";
+
   die;
 }
 
@@ -75,7 +83,7 @@ while (my $line = <$grammarFile>) {
   if (exists $grammar{$leftTerm}) {
     showErrorMsg("Non-terminal production can be present only once", $lineNumber);
   }
-  $grammar{$leftTerm} = ();
+  #$grammar{$leftTerm} = [];
 
   if ($2 !~ m/^\s+(.*)/) {
     showErrorMsg("Missing space between terms", $lineNumber);
@@ -102,12 +110,24 @@ while (my $line = <$grammarFile>) {
       }
     }
 
-    @subTerms = split(/\s+/, trim($term));
-    push(@{$grammar{$leftTerm}}, \@subTerms);
+    my @subTerms = split(/\s+/, trim($term));
+    push @{$grammar{$leftTerm}}, \@subTerms;
   }
+}
 
-  #@kek = @{$grammar{$leftTerm}};
-  #print $kek[0][0] . "\t";
+
+# check if all non-terminals on the right-hand have a production
+@productionKeys = keys %grammar;
+foreach my $key (@productionKeys) {
+  @production = @{$grammar{$key}};
+
+  for my $term (@production) {
+    for my $subTerm (@{$term}) {
+      if ($subTerm =~ /^[A-Z]/ && !exists $grammar{$subTerm}) {
+        showErrorMsg("Terminal ($subTerm) has no production");
+      }
+    }
+  }
 }
 
 
