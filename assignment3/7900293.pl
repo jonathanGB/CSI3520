@@ -19,6 +19,30 @@ sub showErrorMsg {
   die;
 }
 
+sub findError {
+  my ($str, $line, $rightPadding) = @_;
+  $trimmedStr = trim($str);
+
+  if ($str !~ /^\s+(?:\S.*)/) {
+    showErrorMsg("Missing padding on the left of subterm ($trimmedStr)", $line);
+  }
+
+  if ($rightPadding && $str !~ /(?:.*\S)\s+$/) {
+    showErrorMsg("Missing padding on the right of subterm ($trimmedStr)", $line);
+  }
+
+  @splitStr = split(/\s+/, $trimmedStr);
+  foreach my $subTerm (@splitStr) {
+    if ($subTerm !~ /^(?:[A-Z]\S*|[^\sA-Z]+)$/) {
+      $badTerm .= $badTerm ? " $subTerm" : $subTerm;
+    }
+  }
+
+  showErrorMsg("Wrongly formatted subterms ($badTerm)", $line);
+}
+
+
+
 # Get command-line arguments
 if (!($grammarPath = $ARGV[0])) {
   die "--> Original grammar needed as 1st command-line argument\n";
@@ -69,12 +93,12 @@ while (my $line = <$grammarFile>) {
 
     # right-hand wrongly formatted or not
     if ($i == $#rightHand) {
-      if ($term !~ /^(?:\s+(?:[A-Z][a-z]*|[a-z]+|[\[\]\(\)\+\*-]))+\s*$/) {
-        findError($term, 1);
+      if ($term !~ /^(?:\s+(?:[A-Z]\S*|[^\sA-Z]+))+\s*$/) {
+        findError($term, $lineNumber, 0);
       }
     } else {
-      if ($term !~ /^(?:\s+(?:[A-Z][a-z]*|[a-z]+|[\[\]\(\)\+\*-]))+\s+$/) {
-        findError($term, 0);
+      if ($term !~ /^(?:\s+(?:[A-Z]\S*|[^\sA-Z]+))+\s+$/) {
+        findError($term, $lineNumber, 1);
       }
     }
 
@@ -82,8 +106,8 @@ while (my $line = <$grammarFile>) {
     push(@{$grammar{$leftTerm}}, \@subTerms);
   }
 
-  @kek = @{$grammar{$leftTerm}};
-  print $kek[0][0] . "\t";
+  #@kek = @{$grammar{$leftTerm}};
+  #print $kek[0][0] . "\t";
 }
 
 
