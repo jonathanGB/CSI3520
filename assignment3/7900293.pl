@@ -1,3 +1,5 @@
+#! /usr/bin/perl
+
 # CSI 3520 Devoir 3
 # Nom de l'élève : Jonathan Guillotte-Blouin
 # Nombre d'étudiants : 7900293
@@ -83,7 +85,6 @@ while (my $line = <$grammarFile>) {
   if (exists $grammar{$leftTerm}) {
     showErrorMsg("Non-terminal production can be present only once", $lineNumber);
   }
-  #$grammar{$leftTerm} = [];
 
   if ($2 !~ m/^\s+(.*)/) {
     showErrorMsg("Missing space between terms", $lineNumber);
@@ -131,7 +132,45 @@ foreach my $key (@productionKeys) {
 }
 
 
+# check and correct direct left-recursivity
+$hasChanged = 0; # flag to know if a change was made
 
-# if errors in grammar, correct it
+foreach my $key (@productionKeys) {
+  @production = @{$grammar{$key}};
+  my @alphas = ();
+  my @betas = ();
+  $newKey = "$key'";
+
+  for my $term (@production) {
+    if (@{$term}[0] eq $key) {
+      @termArr = @{$term};
+      my @alpha = @termArr[1 .. $#termArr];
+      push @alpha, $newKey;
+
+      if (@alpha) {
+        push(@alphas, \@alpha);
+      }
+    } else {
+      my @beta = @{$term};
+      push @beta, $newKey;
+
+      push(@betas, \@beta);
+    }
+  }
+
+  if (@alphas) {
+    my @epsilon = qw(ε);
+    push @alphas, \@epsilon;
+
+    @{$grammar{$key}} = @betas;
+    @{$grammar{$newKey}} = @alphas;
+  }
+}
+
+print Dumper \%grammar;
+
+
+# check and correct left-factor
+
 
 # output corrected grammar to $outputfile
