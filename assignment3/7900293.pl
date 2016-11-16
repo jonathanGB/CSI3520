@@ -5,6 +5,8 @@
 # Nombre d'étudiants : 7900293
 # Courriel d’étudiant: jguil098@uottawa.ca
 
+use Data::Dumper qw(Dumper);
+
 # helper functions
 sub trim {
   my $inputString = $_[0];
@@ -145,7 +147,7 @@ while (my $line = <$grammarFile>) {
   my $leftTerm;
   chomp $line;
 
-  if ($line !~ m/^\s*([A-Z][a-zA-Z]*)(.*)/) {
+  if ($line !~ m/^\s*([A-Z]\S*)(.*)/) {
     showErrorMsg("Left factor is wrongly formatted", $lineNumber);
   }
   $leftTerm = $1;
@@ -245,6 +247,45 @@ foreach my $key (keys %grammar) {
   correctLeftFactor($grammar{$key}, $key);
 }
 
+
+# warn if indirect left-recursion
+foreach my $key (keys %grammar) {
+  @production = @{$grammar{$key}};
+  my @toVisit = ();
+  my %visited = ();
+  $visited{$key} = 1;
+
+  for my $term (@production) {
+    if (@{$term}[0] =~ /^[A-Z]/) {
+      push @toVisit, @{$term}[0];
+    }
+  }
+
+  while (@toVisit) {
+    my $curr = shift @toVisit;
+
+    if ($visited{$curr}) {
+      $indirects{$curr} = 1;
+      next;
+    }
+
+    $visited{$curr} = 1;
+
+    @innerProduction = @{$grammar{$curr}};
+    for my $innerTerm (@innerProduction) {
+      if (@{$innerTerm}[0] =~ /^[A-Z]/) {
+        push @toVisit, @{$innerTerm}[0];
+      }
+    }
+  }
+}
+
+if (%indirects) {
+  print "Warning: Indirect left recursion detected in non-terminals: ";
+
+  $indirectNonTerms = join(', ', sort keys %indirects);
+  print "$indirectNonTerms\n\n";
+}
 
 # output corrected grammar to $outputfile
 if ($hasChanged) {
