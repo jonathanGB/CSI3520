@@ -5,8 +5,6 @@
 # Nombre d'étudiants : 7900293
 # Courriel d’étudiant: jguil098@uottawa.ca
 
-use Data::Dumper qw(Dumper);
-
 # helper functions
 sub trim {
   my $inputString = $_[0];
@@ -240,10 +238,37 @@ foreach my $key (@productionKeys) {
   }
 }
 
-print Dumper \%grammar;
-
-
-# check and correct left-factor
-
 
 # output corrected grammar to $outputfile
+if ($hasChanged) {
+  $outputString = '';
+
+  # stringify grammar
+  foreach my $key (sort keys %grammar) {
+    @production = @{$grammar{$key}};
+
+    $outputString .= "$key ->";
+
+    for my $i (0 .. $#production) {
+      @term = @{$production[$i]};
+      $joinedSubTerms = join(' ', @term);
+
+      $outputString .= " $joinedSubTerms ";
+
+      if ($i < $#production) {
+        $outputString .= "|";
+      }
+    }
+
+    $outputString .= "\n";
+  }
+
+  # write to output file
+  open(my $fh, '>', $outputPath);
+  print $fh $outputString;
+  close $fh;
+
+  print "Corrections to the grammar were written to $outputPath!\n";
+} else {
+  print "Grammar is already predictive, no modifications were made!\n";
+}
