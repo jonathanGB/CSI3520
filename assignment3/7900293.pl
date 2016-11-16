@@ -51,6 +51,75 @@ sub findError {
   showErrorMsg("Wrongly formatted subterms ($badTerm)", $line);
 }
 
+sub correctLeftFactor {
+  my ($termsRef, $key) = @_;
+  $newKey = "$key'";
+  $termsLen = scalar @{$termsRef} - 1;
+
+  if ($termsLen < 1) {
+    return;
+  }
+
+  $foundPrefix = 0;
+  for my $i (0 .. $termsLen - 1) {
+    @longestPrefix = @{@{$termsRef}[$i]};
+
+    for my $j ($i + 1 .. $termsLen) {
+      @nextTerm = @{@{$termsRef}[$j]};
+
+      if ($longestPrefix[0] ne $nextTerm[0]) {
+        next;
+      }
+      $foundPrefix ? push @indices, $j : push @indices, $i, $j;
+      $foundPrefix = 1;
+
+
+      $iterationLen = ($#longestPrefix < $#nextTerm ? $#longestPrefix : $#nextTerm);
+      for (my $k = 1; $k <= $iterationLen; $k++) {
+        if ($longestPrefix[$k] ne $nextTerm[$k]) {
+          @longestPrefix = @longestPrefix[0 .. $k - 1];
+          last;
+        }
+      }
+    }
+
+    if (!$foundPrefix) {
+      next;
+    }
+
+    my @newTerms;
+    push @longestPrefix, $newKey;
+    push @newTerms, \@longestPrefix;
+    $hasEpsilon = 0;
+
+    for my $i (0 .. $termsLen) {
+      if ($i == $indices[0]) {
+        my @currTerm = @{@{$termsRef}[$i]};
+        my @rest = @currTerm[$#longestPrefix .. $#currTerm];
+
+        if (!scalar @rest) {
+          $hasEpsilon = 1;
+        } else {
+          push @rests, \@rest;
+        }
+        shift @indices;
+      } else {
+        push @newTerms, @{$termsRef}[$i];
+      }
+    }
+
+    if ($hasEpsilon) {
+      my @epsilon = qw(ε);
+      push @rests, \@epsilon;
+    }
+
+    @{$termsRef} = @newTerms;
+    @{$grammar{$newKey}} = @rests;
+
+    last;
+  }
+}
+
 
 
 # Get command-line arguments
@@ -139,10 +208,11 @@ foreach my $key (@productionKeys) {
   @production = @{$grammar{$key}};
   my @alphas = ();
   my @betas = ();
-  $newKey = "$key'";
+  my $newKey = "$key'";
 
   for my $term (@production) {
     if (@{$term}[0] eq $key) {
+      $hasChanged = 1;
       @termArr = @{$term};
       my @alpha = @termArr[1 .. $#termArr];
       push @alpha, $newKey;
@@ -158,7 +228,10 @@ foreach my $key (@productionKeys) {
     }
   }
 
+
   if (@alphas) {
+    correctLeftFactor(\@alphas, $newKey);
+
     my @epsilon = qw(ε);
     push @alphas, \@epsilon;
 
