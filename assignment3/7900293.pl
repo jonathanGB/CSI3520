@@ -109,7 +109,7 @@ sub correctLeftFactor {
     }
 
     if ($hasEpsilon) {
-      my @epsilon = qw(ε);
+      my @epsilon = qw(epsilon);
       push @rests, \@epsilon;
     }
 
@@ -233,7 +233,7 @@ foreach my $key (@productionKeys) {
   if (@alphas) {
 
 
-    my @epsilon = qw(ε);
+    my @epsilon = qw(epsilon);
     push @alphas, \@epsilon;
 
     @{$grammar{$key}} = @betas;
@@ -318,5 +318,5 @@ if ($hasChanged) {
 
   print "Corrections to the grammar were written to $outputPath!\n";
 } else {
-  print "Grammar is already predictive, no modifications were made!\n";
+  print "Input grammar OK\n";
 }
