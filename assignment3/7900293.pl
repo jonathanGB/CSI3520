@@ -5,7 +5,7 @@
 # Nombre d'étudiants : 7900293
 # Courriel d’étudiant: jguil098@uottawa.ca
 
-use Data::Dumper qw(Dumper);
+#use Data::Dumper qw(Dumper);
 
 # helper functions
 sub trim {
