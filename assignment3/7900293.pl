@@ -69,7 +69,7 @@ sub correctLeftFactor {
         next;
       }
       $foundPrefix ? push @indices, $j : push @indices, $i, $j;
-      $foundPrefix = 1;
+      $foundPrefix = $hasChanged = 1;
 
 
       $iterationLen = ($#longestPrefix < $#nextTerm ? $#longestPrefix : $#nextTerm);
@@ -110,6 +110,7 @@ sub correctLeftFactor {
       my @epsilon = qw(ε);
       push @rests, \@epsilon;
     }
+
 
     @{$termsRef} = @newTerms;
     @{$grammar{$newKey}} = @rests;
@@ -228,7 +229,7 @@ foreach my $key (@productionKeys) {
 
 
   if (@alphas) {
-    correctLeftFactor(\@alphas, $newKey);
+
 
     my @epsilon = qw(ε);
     push @alphas, \@epsilon;
@@ -236,6 +237,12 @@ foreach my $key (@productionKeys) {
     @{$grammar{$key}} = @betas;
     @{$grammar{$newKey}} = @alphas;
   }
+}
+
+
+# correct left-factor
+foreach my $key (keys %grammar) {
+  correctLeftFactor($grammar{$key}, $key);
 }
 
 
