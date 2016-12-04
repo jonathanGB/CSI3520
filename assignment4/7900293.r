@@ -36,25 +36,26 @@ generateNewYear = function() {
 
 
 # Part 2
+initStocks = matrix(
+  c(10, 10, 10, 10, 10, 30, 50, 50, 30, 10, 10, 10,
+    40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+    40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 400, 400
+  ),
+  nrow  = 3,
+  ncol  = 12,
+  byrow = TRUE
+)
+
 printOrder = function(m) {
   return(paste("->", m[1], "AC\n ->", m[2], "appliances\n ->", m[3], "toys"))
 }
 
-checkStocks = function(yearIndex) {
+checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
   if (yearIndex <= 0 || yearIndex > length(sellsPerYear)) {
     return(NULL)
   }
 
   sellsThisYear = sellsPerYear[[yearIndex]]
-  stocks = matrix(
-    c(10, 10, 10, 10, 10, 30, 50, 50, 30, 10, 10, 10,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 400, 400
-    ),
-    nrow  = 3,
-    ncol  = 12,
-    byrow = TRUE
-  )
   monthBucket = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
   # write.matrix(stocks)
   # cat("\n")
@@ -70,9 +71,15 @@ checkStocks = function(yearIndex) {
 
     stocks[, (i %% 12) + 1] <- ifelse(nextOrder == 0, monthDiff, nextMonthStocks) # if current stock bigger then next month, update next month stock
 
-    cat(monthBucket[i], "\n---------------\n", printOrder(nextOrder), "\n\n") # print order
+    if (isVerbose) {
+      cat(monthBucket[i], "\n---------------\n", printOrder(nextOrder), "\n\n") # print order
+    }
   }
 
   # cat("\n\n")
   # write.matrix(stocks)
+  return(stocks)
 }
+
+
+# Part 3
