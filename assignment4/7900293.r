@@ -57,6 +57,7 @@ checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
 
   sellsThisYear = sellsPerYear[[yearIndex]]
   monthBucket = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+  ordersList = list()
   # write.matrix(stocks)
   # cat("\n")
   # write.matrix(sellsThisYear)
@@ -68,6 +69,8 @@ checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
     monthSells      <- sellsThisYear[, i]
     monthDiff       <- ifelse(monthStocks - monthSells < 0, 0, monthStocks - monthSells) # doesn't allow more sells than current stock
     nextOrder       <- ifelse(nextMonthStocks - monthDiff < 0, 0, nextMonthStocks - monthDiff) # don't refill stocks if current stock is bigger than next month
+    ordersList      <- unlist(list(ordersList, list(nextOrder)), recursive=FALSE)
+
 
     stocks[, (i %% 12) + 1] <- ifelse(nextOrder == 0, monthDiff, nextMonthStocks) # if current stock bigger then next month, update next month stock
 
@@ -78,8 +81,22 @@ checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
 
   # cat("\n\n")
   # write.matrix(stocks)
-  return(stocks)
+  return(list(stocks, ordersList))
 }
 
 
 # Part 3
+runSimulations = function(from, to, isVerbose = FALSE) {
+  if (from < 1 || to > length(sellsPerYear) || from > to) {
+    return(NULL)
+  }
+
+  currStocks = initStocks
+  for (i in from:to) {
+    data <- checkStocks(i, currStocks, isVerbose)
+    currStocks <- data[[1]]
+    orders <- data[[2]]
+
+    # TODO: more stuff here, plot data, etc.
+  }
+}
