@@ -37,7 +37,8 @@ generateNewYear = function() {
 
 # Part 2
 initStocks = matrix(
-  c(10, 10, 10, 10, 10, 30, 50, 50, 30, 10, 10, 10,
+  c(
+    10, 10, 10, 10, 10, 30, 50, 50, 30, 10, 10, 10,
     40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
     40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 400, 400
   ),
@@ -69,7 +70,7 @@ checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
     monthSells      <- sellsThisYear[, i]
     monthDiff       <- ifelse(monthStocks - monthSells < 0, 0, monthStocks - monthSells) # doesn't allow more sells than current stock
     nextOrder       <- ifelse(nextMonthStocks - monthDiff < 0, 0, nextMonthStocks - monthDiff) # don't refill stocks if current stock is bigger than next month
-    ordersList      <- unlist(list(ordersList, list(nextOrder)), recursive=FALSE)
+    ordersList      <- unlist(list(ordersList, list(nextOrder)), recursive = FALSE)
 
 
     stocks[, (i %% 12) + 1] <- ifelse(nextOrder == 0, monthDiff, nextMonthStocks) # if current stock bigger then next month, update next month stock
