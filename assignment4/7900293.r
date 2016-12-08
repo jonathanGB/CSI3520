@@ -1,5 +1,3 @@
-sellsPerYear <- list() # global list of matrices
-
 # Part 1
 generateACYear = function() {
   avgPerMonth = c(5, 5, 5, 5, 5, 30, 45, 50, 30, 5, 5, 5)
@@ -31,7 +29,7 @@ generateNewYear = function() {
     byrow = TRUE
   )
 
-  sellsPerYear <<- unlist(list(sellsPerYear, list(sellsMatrix)), recursive=FALSE)
+  return(sellsMatrix)
 }
 
 
@@ -46,18 +44,14 @@ initStocks = matrix(
   ncol  = 12,
   byrow = TRUE
 )
+monthBucket = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
 
 printOrder = function(m) {
   return(paste("->", m[1], "AC\n ->", m[2], "appliances\n ->", m[3], "toys"))
 }
 
-checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
-  if (yearIndex <= 0 || yearIndex > length(sellsPerYear)) {
-    return(NULL)
-  }
-
-  sellsThisYear = sellsPerYear[[yearIndex]]
-  monthBucket = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+checkStocks = function(sellsPerYear, ind, stocks, isVerbose = FALSE) {
+  sellsThisYear = sellsPerYear[[ind]]
   ordersList = list()
   # write.matrix(stocks)
   # cat("\n")
@@ -85,19 +79,65 @@ checkStocks = function(yearIndex, stocks, isVerbose = FALSE) {
   return(list(stocks, ordersList))
 }
 
+runPart2 = function() {
+  sells <- list(generateNewYear())
+  dummy <- checkStocks(sells, 1, initStocks, TRUE)
+}
+
 
 # Part 3
-runSimulations = function(from, to, isVerbose = FALSE) {
-  if (from < 1 || to > length(sellsPerYear) || from > to) {
-    return(NULL)
+runPart3 = function(isVerbose = FALSE) {
+  sellsPerYear = list()
+  for (i in 1:3) {
+    sellsPerYear <- unlist(list(sellsPerYear, list(generateNewYear())), recursive=FALSE)
   }
 
   currStocks = initStocks
-  for (i in from:to) {
-    data <- checkStocks(i, currStocks, isVerbose)
+  ordersPerYear = list()
+  for (i in 1:3) {
+    data <- checkStocks(sellsPerYear, i, currStocks, isVerbose)
     currStocks <- data[[1]]
-    orders <- data[[2]]
-
-    # TODO: more stuff here, plot data, etc.
+    ordersPerYear <- unlist(list(ordersPerYear, list(data[[2]])), recursive=FALSE)
   }
+
+  avgOrderAC = c()
+  avgOrderApp = c()
+  avgOrderToy = c()
+
+  for (i in 1:12) {
+    avgOrderAC <- c(avgOrderAC, ((ordersPerYear[[1]][[i]][1] + ordersPerYear[[2]][[i]][1] + ordersPerYear[[3]][[i]][1]) / 3))
+    avgOrderApp <- c(avgOrderApp, ((ordersPerYear[[1]][[i]][2] + ordersPerYear[[2]][[i]][2] + ordersPerYear[[3]][[i]][2]) / 3))
+    avgOrderToy <- c(avgOrderToy, ((ordersPerYear[[1]][[i]][3] + ordersPerYear[[2]][[i]][3] + ordersPerYear[[3]][[i]][3]) / 3))
+  }
+
+  hist(avgOrderToy, freq=FALSE, main="histogramme toy", col="coral")
+  lines(density(avgOrderToy))
+
+  dev.new()
+  hist(avgOrderAC, freq=FALSE, main="histogramme AC", col="aliceblue")
+  lines(density(avgOrderAC))
+
+  dev.new()
+  hist(avgOrderApp, freq=FALSE, main="histogramme Appliances", col="aquamarine")
+  lines(density(avgOrderApp))
+
+  # script
+
+  print(sellsPerYear)
+  maxVal = max(sellsPerYear[[1]][2,])
+  maxMonth = monthBucket[which(maxVal == sellsPerYear[[1]][2,])]
+
+  toy50Ind = which(sellsPerYear[[2]][3,] > 50)
+  print(toy50Ind)
+  toy50Month = monthBucket[toy50Ind]
+  toy50Sum = sum(sellsPerYear[[2]][3,toy50Ind])
+
+  print("Final Script")
+  print("------------")
+  cat("Most sold ACs in year 1 is", maxVal, "in", maxMonth, "\n")
+  cat("Months with over 50 toys sold are", toy50Month, "with a sum during these months of", toy50Sum, "\n")
+
+  allACs <- rbind(sellsPerYear[[3]][1,], sellsPerYear[[3]][1,] - rowMeans(cbind(sellsPerYear[[3]][1,], sellsPerYear[[3]][2,], sellsPerYear[[3]][3,]), na.rm=TRUE))
+  dev.new()
+  barplot(allACs, beside=TRUE, main="AC compared to average")
 }
